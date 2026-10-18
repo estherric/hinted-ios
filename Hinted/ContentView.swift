@@ -25,87 +25,100 @@ enum HintedFonts {
 
 struct ContentView: View {
 
-    // Keeps track of the selected tab
+    // Temporary authentication state
+    @State private var showDashboard = false
+
+    // Selected tab
     @State private var selectedTab = 0
 
     var body: some View {
 
-        TabView(selection: $selectedTab) {
+        Group {
 
-            // Home
-            HomeView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
-                .tag(0)
+            if showDashboard {
 
-            // Closet
-            ClosetView()
-                .tabItem {
-                    Label("Closet", systemImage: "tshirt")
-                }
-                .tag(1)
+                TabView(selection: $selectedTab) {
 
-            // Vibe
-            VibeView()
-                .tabItem {
-                    Label("Vibe", systemImage: "sparkles")
-                }
-                .tag(2)
+                    // Home
+                    HomeDashboardView(
+                        selectedTab: $selectedTab,
+                        showDashboard: $showDashboard
+                    )
+                        .tabItem {
+                            Label("Home", systemImage: "house")
+                        }
+                        .tag(0)
+                    
+                    
+                    // Closet
+                    ClosetView()
+                        .tabItem {
+                            Label("Closet", systemImage: "tshirt")
+                        }
+                        .tag(1)
 
-            // Saved Looks
-            SavedLooksView()
-                .tabItem {
-                    Label("Saved", systemImage: "bookmark")
+                    // Vibe
+                    VibeView()
+                        .tabItem {
+                            Label("Vibe", systemImage: "sparkles")
+                        }
+                        .tag(2)
+
+                    // Saved Looks
+                    SavedLooksView()
+                        .tabItem {
+                            Label("Saved", systemImage: "bookmark")
+                        }
+                        .tag(3)
                 }
-                .tag(3)
-        }
-        .tint(HintedColors.purple)
-        .onAppear {
-            for family in UIFont.familyNames.sorted() {
-                if family.lowercased().contains("ad") {
-                    print("Font Family:", family)
-                    print("Font Names:", UIFont.fontNames(forFamilyName: family))
-                }
+                .tint(HintedColors.purple)
+
+            } else {
+
+                // Onboarding
+                // tells ContentView when to display the dashboard
+                OnboardingView(
+                    showDashboard: $showDashboard
+                )
+
             }
         }
     }
-    
 }
+    
 
 
+// MARK: - Onboarding Screen
 
-// MARK: - Home Screen
+struct OnboardingView: View {
 
-struct HomeView: View {
-
-    @Binding var selectedTab: Int
+    @Binding var showDashboard: Bool
 
     var body: some View {
 
         ScrollView {
 
             VStack(alignment: .leading, spacing: 20) {
-
+                
                 // HINTED Logo
                 VStack(spacing: 6) {
-
+                    
                     Text("WELCOME TO")
                         .font(HintedFonts.adLib(30))
                         .foregroundStyle(.black)
-
+                    
                     Image("hintedLogo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 230, height: 85)
+                        .frame(width: 325, height: 85)
                         .accessibilityLabel("HINTED Logo")
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 20)
-
+                
                 // Featured Outfit Card
                 HStack(spacing: 25) {
-
+                    
                     Image("outfitTop")
                         .resizable()
                         .scaledToFit()
@@ -119,7 +132,7 @@ struct HomeView: View {
                         .frame(width: 100, height: 120)
                         .scaleEffect(1.9)
                         .offset(x: 0, y: 20)
-
+                    
                     Image("outfitShoes")
                         .resizable()
                         .scaledToFit()
@@ -133,59 +146,84 @@ struct HomeView: View {
                 .clipShape(
                     RoundedRectangle(cornerRadius: 20)
                 )
-
+                
                 // Description
                 VStack(alignment: .leading, spacing: 8) {
-
+                    
                     Text("Curated outfits. Zero overthinking.")
                         .font(HintedFonts.adLib(25))
-
-                    Text("Your closet, the weather, and your mood — all in one place.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    
+                    Text("Meet your AI closet companion. Get Dress for your plans, weather, and your mood – all in one.")
+                        .font(HintedFonts.adLib(12)) .foregroundStyle(.secondary)
                 }
-
-                // Build Closet Button
-                Button {
-                    selectedTab = 1
-                } label: {
-
-                    HStack {
-                        Image(systemName: "plus")
-
-                        Text("Let's build your closet")
-                            .fontWeight(.semibold)
+                
+                // MARK: Closet and Sign In Button
+                VStack(spacing: 12) {
+                    
+                    // Build Closet Button
+                    Button {
+                        showDashboard = true
+                    } label: {
+                        
+                        HStack {
+                            Image(systemName: "arrow.right")
+                                .fontWeight(.semibold)
+                            
+                            Text("Let's build your closet")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundStyle(.white)
+                        .background(HintedColors.purple)
+                        .clipShape(Capsule())
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .foregroundStyle(.white)
-                    .background(HintedColors.purple)
-                    .clipShape(Capsule())
-                }
-
-                // Weather Preview
-                VStack(alignment: .leading, spacing: 12) {
-
-                    HStack {
-
-                        Image(systemName: "sun.max.fill")
-                            .font(.system(size: 35))
-
-                        Spacer()
-
-                        Text("Today's Weather")
-                            .font(.headline)
+                    
+                    // Build Sign In Button
+                    Button {
+                        print("Sign In tapped!")
+                    } label: {
+                        
+                        HStack (spacing: 4) {
+                            
+                            Text("Already have a closet?")
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.black)
+                            
+                            Text("Sign in")
+                                .fontWeight(.semibold)
+                                .foregroundStyle(HintedColors.purple)
+                                .underline()
+                        }
+                        .font(.system(size: 14))
                     }
-
-                    Text("Weather recommendations coming soon.")
-                        .font(.subheadline)
+                    .buttonStyle(.plain)
+                    .multilineTextAlignment(.center)
                 }
-                .padding(20)
-                .frame(maxWidth: .infinity)
-                .background(HintedColors.lightYellow)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 20)
-                )
+
+//                // Weather Preview
+//                VStack(alignment: .leading, spacing: 12) {
+//
+//                    HStack {
+//
+//                        Image(systemName: "sun.max.fill")
+//                            .font(.system(size: 35))
+//
+//                        Spacer()
+//
+//                        Text("Today's Weather")
+//                            .font(.headline)
+//                    }
+//
+//                    Text("Weather recommendations coming soon.")
+//                        .font(.subheadline)
+//                }
+//                .padding(20)
+//                .frame(maxWidth: .infinity)
+//                .background(HintedColors.lightYellow)
+//                .clipShape(
+//                    RoundedRectangle(cornerRadius: 20)
+//                )
 
             }
             .padding(20)
