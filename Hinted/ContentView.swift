@@ -201,6 +201,7 @@ struct OnboardingView: View {
                     .multilineTextAlignment(.center)
                 }
 
+                // Not needed
 //                // Weather Preview
 //                VStack(alignment: .leading, spacing: 12) {
 //

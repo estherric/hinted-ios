@@ -24,14 +24,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C80CF7AB30888D400085B06C /* Hinted.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = Hinted.xcodeproj; sourceTree = "<group>"; };
 		C86421413082FD81006ABDB7 /* Hinted.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hinted.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C864214E3082FD84006ABDB7 /* HintedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HintedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C86421583082FD84006ABDB7 /* HintedUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HintedUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C864217430831E34006ABDB7 /* Exceptions for "Hinted" folder in "Hinted" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C86421403082FD81006ABDB7 /* Hinted */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C86421433082FD81006ABDB7 /* Hinted */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C864217430831E34006ABDB7 /* Exceptions for "Hinted" folder in "Hinted" target */,
+			);
 			path = Hinted;
 			sourceTree = "<group>";
 		};
@@ -66,6 +80,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C80CF7AE30888D400085B06C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C86421383082FD81006ABDB7 = {
 			isa = PBXGroup;
 			children = (
@@ -184,6 +205,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C86421423082FD81006ABDB7 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C80CF7AE30888D400085B06C /* Products */;
+					ProjectRef = C80CF7AB30888D400085B06C /* Hinted.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				C86421403082FD81006ABDB7 /* Hinted */,
@@ -370,7 +397,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Hinted/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -401,7 +429,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Hinted/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
