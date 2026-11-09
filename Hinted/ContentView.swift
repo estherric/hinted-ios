@@ -3,6 +3,7 @@
 
 import SwiftUI
 import UIKit
+import SwiftData
 
 // MARK: - HINTED Color Palette
 
@@ -371,4 +372,5 @@ struct SavedLooksView: View {
 
 #Preview {
     ContentView()
+        .modelContainer(for: ClothingItem.self, inMemory: true)
 }

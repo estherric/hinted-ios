@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct HintedApp: App {
@@ -13,5 +14,7 @@ struct HintedApp: App {
         WindowGroup {
             ContentView()
         }
+        // tells SwiftData which model our app needs to store and provide storage env
+        .modelContainer(for: ClothingItem.self)
     }
 }

@@ -7,13 +7,14 @@
 
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 // MARK: - Add a Piece Screen
 
 struct AddPieceView: View {
     
-    // Access to the closet's clothing collection
-    @Binding var clothingItems: [ClothingItem]
+    // Access the SwiftData storage
+    @Environment(\.modelContext) private var modelContext
     
     // Allows this screen to close after saving
     @Environment(\.dismiss) private var dismiss
@@ -33,6 +34,7 @@ struct AddPieceView: View {
     @State private var imageData: Data?
     @State private var isLoadingPhoto = false
     @State private var photoError: String?
+    @State private var saveError: String?
     
     // MARK: - Dropdown Options
     
@@ -126,6 +128,15 @@ struct AddPieceView: View {
                 if let photoError {
                     
                     Text(photoError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                    
+                // MARK: - Photo Error
+                    
+                if let saveError {
+                        
+                    Text(saveError)
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
@@ -321,7 +332,7 @@ struct AddPieceView: View {
         isLoadingPhoto = false
     }
     
-    // MARK: Add Clothing to CLoset
+    // MARK: Add Clothing to Closet
     
     private func addClothingItem() {
         
@@ -337,14 +348,30 @@ struct AddPieceView: View {
             imageData: imageData,
             weather: weather,
             fit: fit,
-            occassion: occasion
+            occasion: occasion
         )
         
-        // Add let new item to the closet
-        clothingItems.append(newItem)
+        // Insert the item into SwiftData
+        modelContext.insert(newItem)
         
-        // Close Add a Piece screen
-        dismiss()
+        do {
+            // Write the new item to persistent storage
+            try modelContext.save()
+            
+            // Closes the Add a Piece screen the form only after saving succeeds
+            dismiss()
+            
+        } catch {
+            
+            // Undo the failed insertion
+            modelContext.delete(newItem)
+            
+            // Display an error msg
+            saveError = "Couldn't save your clothing item. Please try again."
+            
+            print("SwiftData save error: \(error)")
+            
+        }
     }
     
 } // End of AddPieceView
@@ -352,5 +379,6 @@ struct AddPieceView: View {
 // MARK: - Preview
 
 #Preview {
-    AddPieceView(clothingItems: .constant([]))
+    AddPieceView()
+        .modelContainer(for: ClothingItem.self, inMemory: true)
 }

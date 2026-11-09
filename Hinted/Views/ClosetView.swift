@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - My Closet Screen
 
@@ -31,18 +32,9 @@ struct ClosetView: View {
         "Outerwear"
     ]
     
-    // Temporary clothing items
-    @State private var clothingItems: [ClothingItem] = [
-        
-        ClothingItem(name: "Navy Sweater", category: "Tops", color: "Navy", imageName: "tshirt.fill"),
-        
-        ClothingItem(name: "Blue Jeans", category: "Bottoms", color: "Blue", imageName: "square.fill"),
-        
-        ClothingItem(name: "White Sneakers", category: "Shoes", color: "White", imageName: "shoe"),
-        
-        ClothingItem(name: "Black Jacket", category: "Outerwear", color: "Black", imageName: "jacket")
-        
-    ]
+    // MARK: - Saved Clothing Items
+    @Query(sort: \ClothingItem.dateAdded, order:.reverse)
+    private var clothingItems : [ClothingItem]
     
     // MARK - Filter Clothing
     
@@ -237,7 +229,7 @@ struct ClosetView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showAddPiece) {
                 
-                AddPieceView(clothingItems: $clothingItems)
+                AddPieceView()
             }
         }
     }
@@ -247,4 +239,5 @@ struct ClosetView: View {
 
 #Preview {
     ClosetView()
+        .modelContainer(for: ClothingItem.self, inMemory: true)
 }
