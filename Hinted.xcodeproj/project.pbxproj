@@ -87,6 +87,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		C8363B5E309FA5CF00D720F7 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				C80CF7AB30888D400085B06C /* Hinted.xcodeproj */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		C86421383082FD81006ABDB7 = {
 			isa = PBXGroup;
 			children = (
@@ -94,6 +102,7 @@
 				C86421513082FD84006ABDB7 /* HintedTests */,
 				C864215B3082FD84006ABDB7 /* HintedUITests */,
 				C86421423082FD81006ABDB7 /* Products */,
+				C8363B5E309FA5CF00D720F7 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};

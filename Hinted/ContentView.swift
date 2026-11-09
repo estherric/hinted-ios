@@ -1,3 +1,5 @@
+// xcode: set sdk=iOS
+
 
 import SwiftUI
 import UIKit
@@ -233,36 +235,36 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Closet Screen
-
-struct ClosetView: View {
-
-    var body: some View {
-
-        NavigationStack {
-
-            VStack(spacing: 20) {
-
-                Image(systemName: "tshirt.fill")
-                    .font(.system(size: 65))
-                    .foregroundStyle(HintedColors.purple)
-
-                Text("Your closet is waiting!")
-                    .font(.title2)
-                    .fontWeight(.bold)
-
-                Text("Start adding your favorite pieces to build your digital wardrobe.")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(HintedColors.cream)
-            .navigationTitle("My Closet")
-        }
-    }
-}
+//// MARK: - Closet Screen
+//
+//struct ClosetView: View {
+//
+//    var body: some View {
+//
+//        NavigationStack {
+//
+//            VStack(spacing: 20) {
+//
+//                Image(systemName: "tshirt.fill")
+//                    .font(.system(size: 65))
+//                    .foregroundStyle(HintedColors.purple)
+//
+//                Text("Your closet is waiting!")
+//                    .font(.title2)
+//                    .fontWeight(.bold)
+//
+//                Text("Start adding your favorite pieces to build your digital wardrobe.")
+//                    .multilineTextAlignment(.center)
+//                    .foregroundStyle(.secondary)
+//
+//            }
+//            .padding()
+//            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//            .background(HintedColors.cream)
+//            .navigationTitle("My Closet")
+//        }
+//    }
+//}
 
 // MARK: - Vibe Screen
 
