@@ -12,6 +12,9 @@ import SwiftData
 
 struct ClosetView: View {
     
+    // MARK: Environment
+    @Environment(\.modelContext) private var modelContext
+    
     // MARK: - State Variables
     
     // Text entered by user in the search bar
@@ -22,6 +25,14 @@ struct ClosetView: View {
     
     // Controls whether Add a Piece is displayed
     @State private var showAddPiece = false
+    
+    // Clothing item selected for editing
+    @State private var itemToEdit: ClothingItem?
+    
+    // Clothing item selected for deletion
+    @State private var itemToDelete: ClothingItem?
+    @State private var showDeleteConfirmation = false
+    @State private var showDeleteError = false
     
     // Clothing categories
     private let categories = [
@@ -117,7 +128,7 @@ struct ClosetView: View {
                         HStack(spacing: 10) {
                             
                             ForEach(categories, id: \.self) { category in
-                            
+                                
                                 Button {
                                     selectedCategory = category
                                 } label: {
@@ -169,37 +180,80 @@ struct ClosetView: View {
                         
                         LazyVGrid(columns: columns, spacing: 15) {
                             
-                            ForEach(filteredItems) { item in
                             
+                            ForEach(filteredItems) { item in
                                 
-                                // MARK: - Clothing Image
-                                ZStack {
-
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(HintedColors.gray)
-
-                                    if let imageData = item.imageData,
-                                       let image = UIImage(data: imageData) {
-
-                                        // Display the user's uploaded photo
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .padding(8)
-
-                                    } else {
-
-                                        // Display an SF Symbol if no photo exists
-                                        Image(systemName: item.imageName)
-                                            .font(.system(size: 55))
-                                            .foregroundStyle(HintedColors.purple)
+                                // VStack groups the image and buttons vertically
+                                VStack(spacing: 10) {
+                                    
+                                    // MARK: - Clothing Image (EXISTING CODE)
+                                    
+                                    ZStack {
+                                        
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(HintedColors.gray)
+                                        
+                                        if let imageData = item.imageData,
+                                           let image = UIImage(data: imageData) {
+                                            
+                                            // Display the user's uploaded photo
+                                            Image(uiImage: image)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .padding(8)
+                                            
+                                        } else {
+                                            
+                                            // Display an SF Symbol if no photo exists
+                                            Image(systemName: item.imageName)
+                                                .font(.system(size: 55))
+                                                .foregroundStyle(HintedColors.purple)
+                                            
+                                        }
                                     }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 130)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                            }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 130)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
+                                    // MARK: - Edit and Delete Buttons
+                                    
+                                    HStack(spacing: 8) {
+                                        
+                                        // Edit Button
+                                        Button {
+                                            itemToEdit = item
+                                        } label: {
+                                            
+                                            Label("Edit", systemImage: "pencil")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .foregroundStyle(HintedColors.purple)
+                                                .background(HintedColors.purple.opacity(0.10))
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        }
+                                        
+                                        // Delete Button
+                                        Button {
+                                            itemToDelete = item
+                                            showDeleteConfirmation = true
+                                        } label: {
+                                            
+                                            Label("Delete", systemImage: "trash")
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .foregroundStyle(.red)
+                                                .background(Color.red.opacity(0.10))
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    
+                                } // End VStack
+                                
+                            } // End ForEach
+                            
                         }
                     }
                     
@@ -231,13 +285,80 @@ struct ClosetView: View {
                 
                 AddPieceView()
             }
+            
+            // MARK: - Edit Clothing Sheet
+            .sheet(item: $itemToEdit) { item in
+                EditPieceView(item: item)
+            }
+            
+            // MARK: - Delete Confirmation Diaglog
+            
+            // Ask the user before deleting a clothing item
+            .confirmationDialog(
+                "Delete this clothing item?",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                
+                // Delete the selected item
+                Button("Delete Item", role: .destructive) {
+                    deleteClothingItem()
+                }
+                
+                // Cancel the deletion
+                Button("Cancel", role: .cancel) {
+                    itemToDelete = nil
+                }
+            } message: {
+                Text("This action cannot be undone.")
+            }
+            
+            // MARK: - Delete Error Alert
+            .alert("Unable to Delete", isPresented: $showDeleteError) {
+                
+                Button("OK", role: .cancel) {}
+                
+            } message: {
+                Text("The clothing item could not be deleted. Please try again.")
+            }
+            
+        } // End of NavigationStack
+        
+    } // End of body
+    
+        // MARK: - Delete Clothing Item
+        
+        private func deleteClothingItem() {
+            
+            // 1. Make sure a clothing item was selected
+            guard let item =  itemToDelete else {
+                return
+            }
+            
+            // 2. Remove the selected item from SwiftData
+            modelContext.delete(item)
+            
+            do {
+                // saves the deletion
+                try modelContext.save()
+                itemToDelete = nil
+                
+            } catch {
+                // undo uncommitted or recent changes
+                modelContext.rollback()
+                showDeleteError = true
+                itemToDelete = nil
+                
+                print("Delete error: \(error)")
+            }
         }
+    
+    } // End ClosetView
+
+
+    // MARK: - Preview
+
+    #Preview {
+        ClosetView()
+            .modelContainer(for: ClothingItem.self, inMemory: true)
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    ClosetView()
-        .modelContainer(for: ClothingItem.self, inMemory: true)
-}
