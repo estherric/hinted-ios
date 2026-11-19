@@ -16,12 +16,6 @@ struct HomeDashboardView : View {
     // Allows us to return to the onboarding screen
     @Binding var showDashboard: Bool
     
-    // Temporary data for the weather condition
-    let temperature = 100
-    let feelsLike = 102
-    let city = "Los Angeles"
-    let weatherCondition = "Sunny"
-    
     // Returns the current weekday
     var weekday : String {
         Date.now.formatted(.dateTime.weekday(.wide))
@@ -51,50 +45,10 @@ struct HomeDashboardView : View {
                         
                     }
                     
-                    // MARK: - Weather Card
-                    VStack(alignment: .leading, spacing: 15) {
-                        
-                        HStack(alignment: .center) {
-                            
-                            // Weather Location
-                            VStack(alignment: .leading, spacing: 5) {
-                                
-                                // City
-                                Text(city)
-                                    .font(HintedFonts.adLib(25))
-                                
-                                // Weather Condition
-                                Text("\(weatherCondition) • Feels like \(feelsLike)ºF")
-                                    .font(.system(size: 13))
-                            }
-                            
-                            Spacer()
-                            
-                            // Weather Icon
-                            Image(systemName: "sun.max.fill")
-                                .font(.system(size: 35))
-                                .foregroundStyle(.black)
-                            
-                            // Temperature
-                            Text("\(temperature)ºF")
-                                .font(HintedFonts.adLib(27))
-                        }
-                        
-                        Divider()
-                        
-                        Text("Your daily weather hint")
-                            .font(HintedFonts.adLib(15))
-                        
-                        Text("Stay cool! Choose light, breathable clothing for today's outfit.")
-                            .font(.subheadline)
-                            .foregroundStyle(.black)
-                    }
-                    .padding(18)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(HintedColors.lightYellow)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    // MARK: - Live Weather Card (Open-Meteo API)
+                    WeatherCardView()
                     
-                    // MARK - Today's Outfit
+                    // MARK: - Today's Outfit
                     VStack(alignment: .leading, spacing: 15) {
                         
                         // Card Heading
