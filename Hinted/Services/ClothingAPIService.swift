@@ -28,8 +28,12 @@ class ClothingAPIService {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         // check if the request succeeded
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
             throw URLError(.badServerResponse)
         }
 

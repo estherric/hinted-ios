@@ -24,52 +24,99 @@ struct ClothingView: View {
                 HStack {
                     TextField("Search clothing...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
-
+                    
                     Button("Search") {
                         Task {
                             await loadClothing()
                         }
                     }
+                    .disabled(
+                        searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        || isLoading
+                        )
                 }
                 .padding()
 
                 if isLoading {
                     ProgressView("Loading clothing...")
                     Spacer()
+
                 } else if let errorMessage = errorMessage {
                     Text(errorMessage)
                         .foregroundStyle(.red)
                     Spacer()
+
+                } else if products.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.secondary)
+
+                        Text("No clothing found")
+                            .font(.headline)
+
+                        Text("Try searching for something different.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
+
+                    Spacer()
+
                 } else {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(products) { product in
                                 VStack(alignment: .leading, spacing: 8) {
 
-                                    if let imageURL = product.mainImageURL,
-                                       let url = URL(string: imageURL) {
-                                        AsyncImage(url: url) { image in
+                                    // Product image
+                                    GeometryReader { geometry in
+                                        AsyncImage(
+                                            url: URL(string: product.mainImageURL ?? "")
+                                        ) { image in
                                             image
                                                 .resizable()
-                                                .scaledToFill()
+                                                .scaledToFit()
                                         } placeholder: {
                                             ProgressView()
                                         }
-                                        .frame(height: 180)
-                                        .clipped()
+                                        .frame(
+                                            width: geometry.size.width,
+                                            height: 180
+                                        )
                                     }
+                                    .frame(height: 180)
+                                    .background(Color.gray.opacity(0.05))
+                                    .clipShape(
+                                        RoundedRectangle(cornerRadius: 12)
+                                    )
 
+                                    // Product name
                                     Text(product.title)
                                         .font(.subheadline)
-                                        .lineLimit(2)
+                                        .lineLimit(3)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .frame(
+                                            maxWidth: .infinity,
+                                            alignment: .leading
+                                        )
 
+                                    // Brand name
                                     Text(product.brandName)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+                                        .lineLimit(1)
                                 }
+                                .frame(
+                                    maxWidth: .infinity,
+                                    alignment: .topLeading
+                                )
                             }
                         }
-                        .padding()
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
                     }
                 }
             }
@@ -80,7 +127,7 @@ struct ClothingView: View {
         }
     }
 
-    // fetch clothing products from Channel3
+    // Fetch clothing products from Channel3
     func loadClothing() async {
         isLoading = true
         errorMessage = nil

@@ -1,0 +1,2 @@
+CHANNEL3_API_KEY =
+#include? "APIKey.xcconfig"

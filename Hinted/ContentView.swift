@@ -59,13 +59,15 @@ struct ContentView: View {
                         }
                         .tag(1)
 
-
-                    // Explore clothing from Channel3
-                    Text("Explore Clothing")
-                        .tabItem {
-                            Label("Explore", systemImage: "magnifyingglass")
-                        }
-                        .tag(4)
+                    ClothingView(
+                        apiKey: Bundle.main.object(
+                            forInfoDictionaryKey: "CHANNEL3_API_KEY"
+                        ) as? String ?? ""
+                    )
+                    .tabItem {
+                        Label("Explore", systemImage: "magnifyingglass")
+                    }
+                    .tag(4)
 
                     // Vibe
                     VibeView()
