@@ -59,6 +59,14 @@ struct ContentView: View {
                         }
                         .tag(1)
 
+
+                    // Explore clothing from Channel3
+                    Text("Explore Clothing")
+                        .tabItem {
+                            Label("Explore", systemImage: "magnifyingglass")
+                        }
+                        .tag(4)
+
                     // Vibe
                     VibeView()
                         .tabItem {
