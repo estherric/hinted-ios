@@ -12,25 +12,35 @@ import Foundation
 
 // MARK: - Clothing Item Model
 
-// every clothing item is unique from other instance (or clothing obj)
-struct ClothingItem: Identifiable {
-    
+struct ClothingItem: Identifiable, Codable, Equatable {
+
     // Unique identifier for each clothing item
-    let id = UUID()
-    
+    var id = UUID()
+
     // Basic clothing info
     var name: String
     var category: String
     var color: String
-    
+
     // Temporary icon for clothing item (SF Symbol)
     var imageName: String
-    
+
     // Uploaded clothing photo
     var imageData: Data? = nil
-    
+
     // Additional info for recommendations
     var weather: String = "Any"
     var fit: String = "Regular"
     var occassion: String = ""
+
+    // MARK: - Channel3 API Properties
+
+    // Original product ID to prevent duplicates
+    var productID: String? = nil
+
+    // Product image from Channel3
+    var imageURL: String? = nil
+
+    // Product brand
+    var brand: String? = nil
 }

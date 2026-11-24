@@ -1,7 +1,13 @@
-
 import SwiftUI
 
 struct ClothingView: View {
+
+    let apiKey: String
+
+    // Shared clothing collection from ContentView
+    @Binding var clothingItems: [ClothingItem]
+
+    // MARK: - State Variables
 
     @State private var products: [ClothingProduct] = []
     @State private var searchText = "women casual tops"
@@ -10,43 +16,58 @@ struct ClothingView: View {
 
     private let clothingService = ClothingAPIService()
 
-    // API key supplied during local development only
-    let apiKey: String
+    // MARK: - Grid Layout
 
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
 
+    // MARK: - Main View
+
     var body: some View {
         NavigationStack {
             VStack {
+
+                // MARK: - Search Bar
+
                 HStack {
                     TextField("Search clothing...", text: $searchText)
                         .textFieldStyle(.roundedBorder)
-                    
+
                     Button("Search") {
                         Task {
                             await loadClothing()
                         }
                     }
                     .disabled(
-                        searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                        || isLoading
-                        )
+                        searchText.trimmingCharacters(
+                            in: .whitespacesAndNewlines
+                        ).isEmpty || isLoading
+                    )
                 }
                 .padding()
 
+                // MARK: - Loading State
+
                 if isLoading {
+
                     ProgressView("Loading clothing...")
                     Spacer()
 
+                // MARK: - Error State
+
                 } else if let errorMessage = errorMessage {
+
                     Text(errorMessage)
                         .foregroundStyle(.red)
+
                     Spacer()
 
+                // MARK: - Empty State
+
                 } else if products.isEmpty {
+
                     VStack(spacing: 12) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 40))
@@ -64,54 +85,88 @@ struct ClothingView: View {
 
                     Spacer()
 
+                // MARK: - Clothing Grid
+
                 } else {
+
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
+
                             ForEach(products) { product in
-                                VStack(alignment: .leading, spacing: 8) {
 
-                                    // Product image
-                                    GeometryReader { geometry in
-                                        AsyncImage(
-                                            url: URL(string: product.mainImageURL ?? "")
-                                        ) { image in
-                                            image
-                                                .resizable()
-                                                .scaledToFit()
-                                        } placeholder: {
-                                            ProgressView()
-                                        }
-                                        .frame(
-                                            width: geometry.size.width,
-                                            height: 180
-                                        )
-                                    }
-                                    .frame(height: 180)
-                                    .background(Color.gray.opacity(0.05))
-                                    .clipShape(
-                                        RoundedRectangle(cornerRadius: 12)
+                                // Open product details when tapped
+                                NavigationLink {
+                                    ClothingDetailView(
+                                        product: product,
+                                        clothingItems: $clothingItems
                                     )
+                                } label: {
 
-                                    // Product name
-                                    Text(product.title)
-                                        .font(.subheadline)
-                                        .lineLimit(3)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                        .frame(
-                                            maxWidth: .infinity,
-                                            alignment: .leading
+                                    VStack(
+                                        alignment: .leading,
+                                        spacing: 8
+                                    ) {
+
+                                        // Product image
+                                        GeometryReader { geometry in
+                                            AsyncImage(
+                                                url: URL(
+                                                    string: product.mainImageURL ?? ""
+                                                )
+                                            ) { phase in
+                                                switch phase {
+                                                case .success(let image):
+                                                    image
+                                                        .resizable()
+                                                        .scaledToFit()
+
+                                                case .failure:
+                                                    Image(systemName: "tshirt.fill")
+                                                        .font(.system(size: 40))
+                                                        .foregroundStyle(.secondary)
+
+                                                default:
+                                                    ProgressView()
+                                                }
+                                            }
+                                            .frame(
+                                                width: geometry.size.width,
+                                                height: 180
+                                            )
+                                        }
+                                        .frame(height: 180)
+                                        .background(Color.gray.opacity(0.05))
+                                        .clipShape(
+                                            RoundedRectangle(cornerRadius: 12)
                                         )
 
-                                    // Brand name
-                                    Text(product.brandName)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
+                                        // Product name
+                                        Text(product.title)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.primary)
+                                            .lineLimit(3)
+                                            .fixedSize(
+                                                horizontal: false,
+                                                vertical: true
+                                            )
+                                            .frame(
+                                                maxWidth: .infinity,
+                                                alignment: .leading
+                                            )
+
+                                        // Product brand
+                                        Text(product.brandName)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    .frame(
+                                        maxWidth: .infinity,
+                                        alignment: .topLeading
+                                    )
+                                    .contentShape(Rectangle())
                                 }
-                                .frame(
-                                    maxWidth: .infinity,
-                                    alignment: .topLeading
-                                )
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -127,8 +182,11 @@ struct ClothingView: View {
         }
     }
 
-    // Fetch clothing products from Channel3
+    // MARK: - Load Clothing from Channel3 API
+
+    @MainActor
     func loadClothing() async {
+
         isLoading = true
         errorMessage = nil
 
@@ -143,4 +201,13 @@ struct ClothingView: View {
 
         isLoading = false
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    ClothingView(
+        apiKey: "",
+        clothingItems: .constant([])
+    )
 }
