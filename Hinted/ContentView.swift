@@ -221,9 +221,22 @@ struct OnboardingView: View {
 // MARK: - Vibe Screen
 
 struct VibeView: View {
-
+    
+    // MARK: - Clothing from My Closet
+    
+    // automatically retrieves saved clothing from SwiftData
+    @Query private var clothingItems: [ClothingItem]
+    
+    // MARK: Outfit Recommendation
+    
+    // stores the generated outfit so it can appear on screen
+    @State private var recommendedOutfit: RecommendedOutfit?
+    
+    // Handles the outfit logic of the selection
+    private let recommendationService = OutfitRecommendationService()
+    
     @State private var selectedVibe = "Casual"
-
+    
     let vibes = [
         "Casual",
         "Cozy",
@@ -231,64 +244,131 @@ struct VibeView: View {
         "Chic",
         "Streetwear"
     ]
-
+    
     var body: some View {
-
+        
         NavigationStack {
-
-            VStack(alignment: .leading, spacing: 20) {
-
-                Text("What's the vibe?")
-                    .font(.custom("AdLibBT-Regular", size: 30))
-                    .fontWeight(.bold)
-
-                Text("Choose your style for today.")
-                    .foregroundStyle(.secondary)
-
-                // Vibe Selection Buttons
-                ForEach(vibes, id: \.self) { vibe in
-
+            
+            ScrollView {
+                
+                VStack(alignment: .leading, spacing: 20) {
+                    
+                    Text("What's the vibe?")
+                        .font(.custom("AdLibBT-Regular", size: 30))
+                        .fontWeight(.bold)
+                    
+                    Text("Choose your style for today.")
+                        .foregroundStyle(.secondary)
+                    
+                    // Vibe Selection Buttons
+                    ForEach(vibes, id: \.self) { vibe in
+                        
+                        Button {
+                            selectedVibe = vibe
+                        } label: {
+                            
+                            HStack {
+                                
+                                Text(vibe)
+                                
+                                Spacer()
+                                
+                                if selectedVibe == vibe {
+                                    Image(systemName: "checkmark.circle.fill")
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                selectedVibe == vibe
+                                ? HintedColors.purple
+                                : .white
+                            )
+                            .foregroundStyle(
+                                selectedVibe == vibe
+                                ? .white
+                                : .black
+                            )
+                            .clipShape(
+                                RoundedRectangle(cornerRadius: 12)
+                            )
+                        } // End of Button
+                    } // End of ForEach
+                    
+                    
+                    
+                    // MARK: - Generate Outfit Button
+                    
                     Button {
-                        selectedVibe = vibe
+                        // asks the recommendation service to select clothing
+                        recommendedOutfit = recommendationService.generateOutfit(
+                            from: clothingItems,
+                            vibe: selectedVibe
+                        )
                     } label: {
-
-                        HStack {
-
-                            Text(vibe)
-
-                            Spacer()
-
-                            if selectedVibe == vibe {
-                                Image(systemName: "checkmark.circle.fill")
+                        HStack(spacing: 10) {
+                            Image(systemName: "sparkles")
+                            
+                            Text("Generate My Outfit")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundStyle(.white)
+                        .background(HintedColors.purple)
+                        .clipShape(Capsule())
+                    }
+                    .padding(.top, 12)
+                    
+                    // MARK: - Recommended Outfit Display
+                    
+                    if let outfit = recommendedOutfit {
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            
+                            Text("Your Outfit Recommendation")
+                                .font(HintedFonts.adLib(18))
+                                .foregroundStyle(.black)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Text("Top: \(outfit.top.name)")
+                            Text("Bottom: \(outfit.bottom.name)")
+                            Text("Shoes: \(outfit.shoes.name)")
+                            
+                            if let outerwear = outfit.outerwear {
+                                Text("Outerwear: \(outerwear.name)")
                             }
                         }
                         .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            selectedVibe == vibe
-                            ? HintedColors.purple
-                            : .white
-                        )
-                        .foregroundStyle(
-                            selectedVibe == vibe
-                            ? .white
-                            : .black
-                        )
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 12)
-                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        
+                    } else if clothingItems.filter({$0.category == "Tops"}).isEmpty ||
+                                clothingItems.filter({$0.category == "Bottoms"}).isEmpty ||
+                                clothingItems.filter({$0.category == "Shoes"}).isEmpty {
+                        
+                        Text("Add at least one top, one bottom, and one pair of shoes to My Closet to generate an outfit.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 8)
                     }
-                }
-
-                Spacer()
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                } // End of main VStack
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+                .padding(.bottom, 100)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+            } // End of ScrollView
             .background(HintedColors.cream)
-            .navigationTitle("Find My Outfit")
-        }
-    }
-}
+            .toolbar(.hidden, for: .navigationBar)
+            
+        } // End of NavigationStack
+        
+    } // End of body
+    
+} // End of VibeView
 
 // MARK: - Saved Looks Screen
 
@@ -297,23 +377,24 @@ struct SavedLooksView: View {
     var body: some View {
 
         NavigationStack {
-
-            VStack(spacing: 20) {
-
-                Image(systemName: "bookmark.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(HintedColors.purple)
-
-                Text("No saved looks yet!")
-                    .font(.title2)
-                    .fontWeight(.bold)
-
-                Text("Your favorite outfits will appear here.")
-                    .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(spacing: 20) {
+                    
+                    Image(systemName: "bookmark.fill")
+                        .font(.system(size: 60))
+                        .foregroundStyle(HintedColors.purple)
+                    
+                    Text("No saved looks yet!")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Text("Your favorite outfits will appear here.")
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(HintedColors.cream)
+                .navigationTitle("Saved Looks")
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(HintedColors.cream)
-            .navigationTitle("Saved Looks")
         }
     }
 }
