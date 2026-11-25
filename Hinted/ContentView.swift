@@ -16,11 +16,13 @@ enum HintedColors {
 }
 
 // MARK: - HINTED Typography
+
 // We can reuse the font style
 // syntax: .font(HintedFonts.adLib())
+
 enum HintedFonts {
     static func adLib(_ size: CGFloat) -> Font {
-        return .custom("AdLibBT-Regular", size : size)
+        return .custom("AdLibBT-Regular", size: size)
     }
 }
 
@@ -35,30 +37,37 @@ struct ContentView: View {
     @State private var selectedTab = 0
 
     var body: some View {
-
         Group {
-
             if showDashboard {
-
                 TabView(selection: $selectedTab) {
 
-                    // Home
+                    // MARK: Home Tab
                     HomeDashboardView(
                         selectedTab: $selectedTab,
                         showDashboard: $showDashboard
                     )
-                        .tabItem {
-                            Label("Home", systemImage: "house")
-                        }
-                        .tag(0)
-                    
-                    
-                    // Closet
+                    .tabItem {
+                        Label("Home", systemImage: "house")
+                    }
+                    .tag(0)
+
+                    // MARK: - Closet Tab
                     ClosetView()
                         .tabItem {
                             Label("Closet", systemImage: "tshirt")
                         }
                         .tag(1)
+
+                    // MARK: - Explore Tab
+                    ClothingView(
+                        apiKey: Bundle.main.object(
+                            forInfoDictionaryKey: "CHANNEL3_API_KEY"
+                        ) as? String ?? ""
+                    )
+                    .tabItem {
+                        Label("Explore", systemImage: "magnifyingglass")
+                    }
+                    .tag(4)
 
                     // Vibe
                     VibeView()
@@ -79,17 +88,13 @@ struct ContentView: View {
             } else {
 
                 // Onboarding
-                // tells ContentView when to display the dashboard
                 OnboardingView(
                     showDashboard: $showDashboard
                 )
-
             }
         }
     }
 }
-    
-
 
 // MARK: - Onboarding Screen
 
@@ -102,14 +107,14 @@ struct OnboardingView: View {
         ScrollView {
 
             VStack(alignment: .leading, spacing: 20) {
-                
+
                 // HINTED Logo
                 VStack(spacing: 6) {
-                    
+
                     Text("WELCOME TO")
                         .font(HintedFonts.adLib(30))
                         .foregroundStyle(.black)
-                    
+
                     Image("hintedLogo")
                         .resizable()
                         .scaledToFit()
@@ -118,24 +123,24 @@ struct OnboardingView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 20)
-                
+
                 // Featured Outfit Card
                 HStack(spacing: 25) {
-                    
+
                     Image("outfitTop")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 110, height: 120)
                         .scaleEffect(2)
                         .offset(x: 30, y: -15)
-                    
+
                     Image("outfitBag")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 100, height: 120)
                         .scaleEffect(1.9)
                         .offset(x: 0, y: 20)
-                    
+
                     Image("outfitShoes")
                         .resizable()
                         .scaledToFit()
@@ -149,29 +154,32 @@ struct OnboardingView: View {
                 .clipShape(
                     RoundedRectangle(cornerRadius: 20)
                 )
-                
+
                 // Description
                 VStack(alignment: .leading, spacing: 8) {
-                    
+
                     Text("Curated outfits. Zero overthinking.")
                         .font(HintedFonts.adLib(25))
-                    
+
                     Text("Meet your AI closet companion. Get Dress for your plans, weather, and your mood – all in one.")
-                        .font(HintedFonts.adLib(12)) .foregroundStyle(.secondary)
+                        .font(HintedFonts.adLib(12))
+                        .foregroundStyle(.secondary)
                 }
-                
+
                 // MARK: Closet and Sign In Button
+
                 VStack(spacing: 12) {
-                    
+
                     // Build Closet Button
                     Button {
                         showDashboard = true
                     } label: {
-                        
+
                         HStack {
+
                             Image(systemName: "arrow.right")
                                 .fontWeight(.semibold)
-                            
+
                             Text("Let's build your closet")
                                 .fontWeight(.semibold)
                         }
@@ -181,18 +189,18 @@ struct OnboardingView: View {
                         .background(HintedColors.purple)
                         .clipShape(Capsule())
                     }
-                    
-                    // Build Sign In Button
+
+                    // Sign In Button
                     Button {
                         print("Sign In tapped!")
                     } label: {
-                        
-                        HStack (spacing: 4) {
-                            
+
+                        HStack(spacing: 4) {
+
                             Text("Already have a closet?")
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.black)
-                            
+
                             Text("Sign in")
                                 .fontWeight(.semibold)
                                 .foregroundStyle(HintedColors.purple)
@@ -203,69 +211,12 @@ struct OnboardingView: View {
                     .buttonStyle(.plain)
                     .multilineTextAlignment(.center)
                 }
-
-                // Not needed
-//                // Weather Preview
-//                VStack(alignment: .leading, spacing: 12) {
-//
-//                    HStack {
-//
-//                        Image(systemName: "sun.max.fill")
-//                            .font(.system(size: 35))
-//
-//                        Spacer()
-//
-//                        Text("Today's Weather")
-//                            .font(.headline)
-//                    }
-//
-//                    Text("Weather recommendations coming soon.")
-//                        .font(.subheadline)
-//                }
-//                .padding(20)
-//                .frame(maxWidth: .infinity)
-//                .background(HintedColors.lightYellow)
-//                .clipShape(
-//                    RoundedRectangle(cornerRadius: 20)
-//                )
-
             }
             .padding(20)
         }
         .background(HintedColors.cream)
     }
 }
-
-//// MARK: - Closet Screen
-//
-//struct ClosetView: View {
-//
-//    var body: some View {
-//
-//        NavigationStack {
-//
-//            VStack(spacing: 20) {
-//
-//                Image(systemName: "tshirt.fill")
-//                    .font(.system(size: 65))
-//                    .foregroundStyle(HintedColors.purple)
-//
-//                Text("Your closet is waiting!")
-//                    .font(.title2)
-//                    .fontWeight(.bold)
-//
-//                Text("Start adding your favorite pieces to build your digital wardrobe.")
-//                    .multilineTextAlignment(.center)
-//                    .foregroundStyle(.secondary)
-//
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity, maxHeight: .infinity)
-//            .background(HintedColors.cream)
-//            .navigationTitle("My Closet")
-//        }
-//    }
-//}
 
 // MARK: - Vibe Screen
 
@@ -288,7 +239,8 @@ struct VibeView: View {
             VStack(alignment: .leading, spacing: 20) {
 
                 Text("What's the vibe?")
-                    .font(.custom("AdLibBT-Regular", size: 30))                    .fontWeight(.bold)
+                    .font(.custom("AdLibBT-Regular", size: 30))
+                    .fontWeight(.bold)
 
                 Text("Choose your style for today.")
                     .foregroundStyle(.secondary)
@@ -337,8 +289,6 @@ struct VibeView: View {
         }
     }
 }
-
-
 
 // MARK: - Saved Looks Screen
 
