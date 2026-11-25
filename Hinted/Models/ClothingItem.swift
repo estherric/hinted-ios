@@ -37,6 +37,17 @@ final class ClothingItem {
 
     // Date the item was added
     var dateAdded: Date
+    
+    // MARK: - Channel3 API Properties
+    
+    // Unique ID of a product from Channel3
+    var productID: String?
+    
+    // URL of the product's image
+    var imageURL: String?
+    
+    // Brand of the clothing product
+    var brand: String?
 
     // MARK: - Initializer
 
@@ -48,7 +59,10 @@ final class ClothingItem {
         imageData: Data? = nil,
         weather: String = "Any",
         fit: String = "Regular",
-        occasion: String = ""
+        occasion: String = "",
+        productID: String? = nil,
+        imageURL: String? = nil,
+        brand: String? = nil
     ) {
         self.id = UUID()
         self.name = name
@@ -60,6 +74,9 @@ final class ClothingItem {
         self.fit = fit
         self.occasion = occasion
         self.dateAdded = Date()
+        self.productID = productID
+        self.imageURL = imageURL
+        self.brand = brand
     }
 }
 
