@@ -235,6 +235,17 @@ struct VibeView: View {
     // Handles the outfit logic of the selection
     private let recommendationService = OutfitRecommendationService()
     
+    // MARK: - Current Weather
+    
+    // current weather in Fullerton (in ºF)
+    @State private var temperatureFahreninheit: Double?
+    
+    // Open-Meteo weather code (rain, clear, cloudy, etc.)
+    @State private var currentWeatherCode: Int?
+    
+    // if we are still fetching the weather
+    @State private var isWeatherLoading = true
+    
     @State private var selectedVibe = "Casual"
     
     let vibes = [
@@ -320,10 +331,12 @@ struct VibeView: View {
                         // MARK: - Generate Outfit Button
                         
                         Button {
-                            // asks the recommendation service to select clothing
+                            // generate outfit based on vibe and curr weather
                             recommendedOutfit = recommendationService.generateOutfit(
                                 from: clothingItems,
-                                vibe: selectedVibe
+                                vibe: selectedVibe,
+                                temperature: temperatureFahreninheit,
+                                weatherCode: currentWeatherCode
                             )
                                           
                             } label: {
@@ -351,6 +364,34 @@ struct VibeView: View {
                                     .font(HintedFonts.adLib(18))
                                     .foregroundStyle(.black)
                                     .fixedSize(horizontal: false, vertical: true)
+                                
+                                // MARK:- Weather Recommendation Explanation
+                                if let temperature = temperatureFahreninheit {
+                                    
+                                    let temperatureText = Int(temperature.rounded())
+                                    
+                                    if temperature >= 80 {
+                                        Text("It's \(temperatureText)ºF in Fullerton. HINTED is prioritizing lighter clothing while considering your \(selectedVibe) vibe.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        
+                                    } else if temperature < 60 {
+                                        Text("It's \(temperatureText)ºF in Fullerton. HINTED is prioritizing warmer clothing while considering your \(selectedVibe) vibe.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        
+                                    } else {
+                                        Text("It's \(temperatureText)ºF in Fullerton. HINTED is balancing comfortable layers with your \(selectedVibe) vibe.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    
+                                } else {
+                                    
+                                    Text("Weather is unavailable. This outfit is based on your selected vibe.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                                 
                                 
                                 OutfitItemCardView(item: outfit.top, category: "Top")
@@ -405,11 +446,42 @@ struct VibeView: View {
                 .background(HintedColors.cream)
                 .toolbar(.hidden, for: .navigationBar)
                 
+                // fetches the current weather when the Vibe screen appears
+                .task {
+                    await loadWeatherForRecommendations()
+                }
+                
             } // End of ScrollViewReader
             
         } // End of NavigationStack
         
     } // End of body
+    
+    @MainActor
+    private func loadWeatherForRecommendations() async {
+        
+        isWeatherLoading = true
+        
+        do {
+            
+            // resuses the Open-Meteo service alr built for HINTED
+            let weather = try await WeatherService().fetchWeather()
+            
+            // store weather information for rec scoring
+            temperatureFahreninheit = weather.current.temperature
+            currentWeatherCode = weather.current.weatherCode
+
+        } catch {
+            
+            // if weather fails -> user can still generate outfit based on vibe
+            temperatureFahreninheit = nil
+            currentWeatherCode = nil
+            
+            print("Weather unavailable for recommendations.")
+        }
+        
+        isWeatherLoading = false
+    }
     
 } // End of VibeView
 
