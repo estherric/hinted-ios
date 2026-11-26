@@ -400,6 +400,8 @@
 		};
 		C86421613082FD84006ABDB7 /* Debug configuration for PBXNativeTarget "Hinted" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = C86421433082FD81006ABDB7 /* Hinted */;
+			baseConfigurationReferenceRelativePath = Config.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

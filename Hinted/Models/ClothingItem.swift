@@ -9,28 +9,74 @@
 
 // for data storage, dates, networking, and files
 import Foundation
+import SwiftData
 
 // MARK: - Clothing Item Model
 
-// every clothing item is unique from other instance (or clothing obj)
-struct ClothingItem: Identifiable {
-    
-    // Unique identifier for each clothing item
-    let id = UUID()
-    
-    // Basic clothing info
+@Model
+final class ClothingItem {
+
+    // Unique identifier
+    @Attribute(.unique)
+    var id: UUID
+
+    // Basic clothing information
     var name: String
     var category: String
     var color: String
-    
-    // Temporary icon for clothing item (SF Symbol)
     var imageName: String
-    
+
     // Uploaded clothing photo
-    var imageData: Data? = nil
+    @Attribute(.externalStorage)
+    var imageData: Data?
+
+    // Outfit recommendation information
+    var weather: String
+    var fit: String
+    var occasion: String
+
+    // Date the item was added
+    var dateAdded: Date
     
-    // Additional info for recommendations
-    var weather: String = "Any"
-    var fit: String = "Regular"
-    var occassion: String = ""
+    // MARK: - Channel3 API Properties
+    
+    // Unique ID of a product from Channel3
+    var productID: String?
+    
+    // URL of the product's image
+    var imageURL: String?
+    
+    // Brand of the clothing product
+    var brand: String?
+
+    // MARK: - Initializer
+
+    init(
+        name: String,
+        category: String,
+        color: String,
+        imageName: String = "tshirt.fill",
+        imageData: Data? = nil,
+        weather: String = "Any",
+        fit: String = "Regular",
+        occasion: String = "",
+        productID: String? = nil,
+        imageURL: String? = nil,
+        brand: String? = nil
+    ) {
+        self.id = UUID()
+        self.name = name
+        self.category = category
+        self.color = color
+        self.imageName = imageName
+        self.imageData = imageData
+        self.weather = weather
+        self.fit = fit
+        self.occasion = occasion
+        self.dateAdded = Date()
+        self.productID = productID
+        self.imageURL = imageURL
+        self.brand = brand
+    }
 }
+

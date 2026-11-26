@@ -1,0 +1,9 @@
+# API keys
+Hinted/APIKey.xcconfig
+
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+
+# macOS files
+.DS_Store
