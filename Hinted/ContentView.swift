@@ -249,120 +249,163 @@ struct VibeView: View {
         
         NavigationStack {
             
-            ScrollView {
+            ScrollViewReader { proxy in
                 
-                VStack(alignment: .leading, spacing: 20) {
+                ScrollView {
                     
-                    Text("What's the vibe?")
-                        .font(.custom("AdLibBT-Regular", size: 30))
-                        .fontWeight(.bold)
-                    
-                    Text("Choose your style for today.")
-                        .foregroundStyle(.secondary)
-                    
-                    // Vibe Selection Buttons
-                    ForEach(vibes, id: \.self) { vibe in
+                    VStack(alignment: .leading, spacing: 20) {
+                        
+                        Text("What's the vibe?")
+                            .font(.custom("AdLibBT-Regular", size: 30))
+                            .fontWeight(.bold)
+                        
+                        Text("Choose your style for today.")
+                            .foregroundStyle(.secondary)
+                        
+                        // MARK: - Vibe Selection Grid
+                        // display vibe options in two columns
+                        
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 12),
+                                GridItem(.flexible(), spacing: 12)
+                            ],
+                            spacing: 12
+                        ) {
+                            
+                            ForEach(vibes, id: \.self) { vibe in
+                                
+                                Button {
+                                    // stores the vibe selected by the user
+                                    selectedVibe = vibe
+                                    
+                                    // clear the previous recommendation
+                                    // bc the selected vibe has changed
+                                    recommendedOutfit = nil
+                                    
+                                } label: {
+                                    
+                                    HStack(spacing: 8) {
+                                        
+                                        Text(vibe)
+                                            .font(.system(size: 16, weight: .semibold))
+                                        
+                                        Spacer(minLength: 0)
+                                        
+                                        if selectedVibe == vibe {
+                                            Image(systemName: "checkmark.circle.fill")
+                                        }
+                                    }
+                                    .padding(.horizontal, 14)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 65)
+                                    .background(
+                                        selectedVibe == vibe
+                                        ? HintedColors.purple
+                                        : Color.white
+                                    )
+                                    .foregroundStyle(
+                                        selectedVibe == vibe
+                                        ? Color.white
+                                        : Color.black
+                                    )
+                                    .clipShape(
+                                        RoundedRectangle(cornerRadius: 14)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        } // End of ForEach
+                        
+                        // MARK: - Generate Outfit Button
                         
                         Button {
-                            selectedVibe = vibe
-                        } label: {
+                            // asks the recommendation service to select clothing
+                            recommendedOutfit = recommendationService.generateOutfit(
+                                from: clothingItems,
+                                vibe: selectedVibe
+                            )
+                                          
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "sparkles")
+                                    
+                                    Text("Generate My Outfit")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .foregroundStyle(.white)
+                                .background(HintedColors.purple)
+                                .clipShape(Capsule())
+                            }
+                                          .padding(.top, 12)
+                        
+                        // MARK: - Recommended Outfit Display
+                        
+                        if let outfit = recommendedOutfit {
                             
-                            HStack {
+                            VStack(alignment: .leading, spacing: 12) {
                                 
-                                Text(vibe)
+                                Text("Your Outfit Recommendation")
+                                    .font(HintedFonts.adLib(18))
+                                    .foregroundStyle(.black)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 
-                                Spacer()
                                 
-                                if selectedVibe == vibe {
-                                    Image(systemName: "checkmark.circle.fill")
+                                OutfitItemCardView(item: outfit.top, category: "Top")
+                                OutfitItemCardView(item: outfit.bottom, category: "Bottom")
+                                OutfitItemCardView(item: outfit.shoes, category: "Shoes")
+                                
+                                // outerwear is optional
+                                if let outerwear = outfit.outerwear {
+                                    OutfitItemCardView(item: outerwear, category: "Outerwear")
                                 }
                             }
                             .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                selectedVibe == vibe
-                                ? HintedColors.purple
-                                : .white
-                            )
-                            .foregroundStyle(
-                                selectedVibe == vibe
-                                ? .white
-                                : .black
-                            )
-                            .clipShape(
-                                RoundedRectangle(cornerRadius: 12)
-                            )
-                        } // End of Button
-                    } // End of ForEach
-                    
-                    
-                    
-                    // MARK: - Generate Outfit Button
-                    
-                    Button {
-                        // asks the recommendation service to select clothing
-                        recommendedOutfit = recommendationService.generateOutfit(
-                            from: clothingItems,
-                            vibe: selectedVibe
-                        )
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "sparkles")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .id("outfitRecommendation")
                             
-                            Text("Generate My Outfit")
-                                .fontWeight(.semibold)
+                        } else if clothingItems.filter({$0.category == "Tops"}).isEmpty ||
+                                    clothingItems.filter({$0.category == "Bottoms"}).isEmpty ||
+                                    clothingItems.filter({$0.category == "Shoes"}).isEmpty {
+                            
+                            Text("Add at least one top, one bottom, and one pair of shoes to My Closet to generate an outfit.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 8)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .foregroundStyle(.white)
-                        .background(HintedColors.purple)
-                        .clipShape(Capsule())
-                    }
-                    .padding(.top, 12)
-                    
-                    // MARK: - Recommended Outfit Display
-                    
-                    if let outfit = recommendedOutfit {
                         
-                        VStack(alignment: .leading, spacing: 12) {
-                            
-                            Text("Your Outfit Recommendation")
-                                .font(HintedFonts.adLib(18))
-                                .foregroundStyle(.black)
-                                .fixedSize(horizontal: false, vertical: true)
-                            
-                            Text("Top: \(outfit.top.name)")
-                            Text("Bottom: \(outfit.bottom.name)")
-                            Text("Shoes: \(outfit.shoes.name)")
-                            
-                            if let outerwear = outfit.outerwear {
-                                Text("Outerwear: \(outerwear.name)")
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        
-                    } else if clothingItems.filter({$0.category == "Tops"}).isEmpty ||
-                                clothingItems.filter({$0.category == "Bottoms"}).isEmpty ||
-                                clothingItems.filter({$0.category == "Shoes"}).isEmpty {
-                        
-                        Text("Add at least one top, one bottom, and one pair of shoes to My Closet to generate an outfit.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 8)
-                    }
+                    } // End of main VStack
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 32)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     
-                } // End of main VStack
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
-                .padding(.bottom, 100)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                } // End of ScrollView
                 
-            } // End of ScrollView
-            .background(HintedColors.cream)
-            .toolbar(.hidden, for: .navigationBar)
+                // when an outfit appears -> scroll to its card
+                // runs after SwiftUI observes the state change
+                .onChange(of: recommendedOutfit != nil) {_, hasOutfit in
+                    
+                    guard hasOutfit else { return }
+                    
+                    // scroll to the recommendation outfit after it appears
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        proxy.scrollTo(
+                            "outfitRecommendation",
+                            anchor: .top
+                        )
+                    }
+                    
+                }
+                .safeAreaPadding(.bottom, 32)
+                .background(HintedColors.cream)
+                .toolbar(.hidden, for: .navigationBar)
+                
+            } // End of ScrollViewReader
             
         } // End of NavigationStack
         
