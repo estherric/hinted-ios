@@ -222,6 +222,12 @@ struct OnboardingView: View {
 
 struct VibeView: View {
     
+    // MARK: - Saved Looks
+
+    @Environment(\.modelContext) private var modelContext
+
+    @Query private var savedLooks: [SavedLook]
+    
     // MARK: - Clothing from My Closet
     
     // automatically retrieves saved clothing from SwiftData
@@ -402,6 +408,39 @@ struct VibeView: View {
                                 if let outerwear = outfit.outerwear {
                                     OutfitItemCardView(item: outerwear, category: "Outerwear")
                                 }
+                                
+                                // MARK: - Save Look Button
+
+                                Button {
+                                    saveOutfit(outfit)
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Image(
+                                            systemName: isOutfitSaved(outfit)
+                                                ? "bookmark.fill"
+                                                : "bookmark"
+                                        )
+
+                                        Text(
+                                            isOutfitSaved(outfit)
+                                                ? "Look Saved"
+                                                : "Save Look"
+                                        )
+                                        .fontWeight(.semibold)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .foregroundStyle(.white)
+                                    .background(
+                                        isOutfitSaved(outfit)
+                                            ? Color.gray
+                                            : HintedColors.purple
+                                    )
+                                    .clipShape(Capsule())
+                                }
+                                .disabled(isOutfitSaved(outfit))
+                                .padding(.top, 8)
+                                
                             }
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -483,40 +522,220 @@ struct VibeView: View {
         isWeatherLoading = false
     }
     
+    // MARK: - Check if Outfit is Saved
+
+    private func isOutfitSaved(_ outfit: RecommendedOutfit) -> Bool {
+        savedLooks.contains { look in
+            look.top?.id == outfit.top.id &&
+            look.bottom?.id == outfit.bottom.id &&
+            look.shoes?.id == outfit.shoes.id &&
+            look.outerwear?.id == outfit.outerwear?.id
+        }
+    }
+
+    // MARK: - Save Outfit
+
+    private func saveOutfit(_ outfit: RecommendedOutfit) {
+        guard !isOutfitSaved(outfit) else {
+            return
+        }
+
+        let newLook = SavedLook(
+            vibe: selectedVibe,
+            temperature: temperatureFahreninheit,
+            top: outfit.top,
+            bottom: outfit.bottom,
+            shoes: outfit.shoes,
+            outerwear: outfit.outerwear
+        )
+
+        modelContext.insert(newLook)
+
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.delete(newLook)
+            print("Failed to save outfit: \(error)")
+        }
+    }
+    
 } // End of VibeView
+
+// MARK: - Saved Looks Screen
 
 // MARK: - Saved Looks Screen
 
 struct SavedLooksView: View {
 
-    var body: some View {
+    @Environment(\.modelContext) private var modelContext
 
+    // Retrieve saved outfits, newest first
+    @Query(sort: \SavedLook.dateSaved, order: .reverse)
+    private var savedLooks: [SavedLook]
+
+    @State private var lookToDelete: SavedLook?
+    @State private var showDeleteConfirmation = false
+
+    var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    
-                    Image(systemName: "bookmark.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(HintedColors.purple)
-                    
-                    Text("No saved looks yet!")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text("Your favorite outfits will appear here.")
-                        .foregroundStyle(.secondary)
+                if savedLooks.isEmpty {
+
+                    // Empty state
+                    VStack(spacing: 20) {
+                        Image(systemName: "bookmark.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(HintedColors.purple)
+
+                        Text("No saved looks yet!")
+                            .font(.title2)
+                            .fontWeight(.bold)
+
+                        Text("Your favorite outfits will appear here.")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 40)
+
+                } else {
+
+                    // Display saved outfits
+                    VStack(spacing: 20) {
+                        ForEach(savedLooks) { look in
+                            savedLookCard(look)
+                        }
+                    }
+                    .padding(20)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(HintedColors.cream)
-                .navigationTitle("Saved Looks")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(HintedColors.cream)
+            .navigationTitle("Saved Looks")
+            .alert(
+                "Remove Saved Look?",
+                isPresented: $showDeleteConfirmation
+            ) {
+                Button("Cancel", role: .cancel) {
+                    lookToDelete = nil
+                }
+
+                Button("Remove", role: .destructive) {
+                    if let look = lookToDelete {
+                        deleteLook(look)
+                    }
+                    lookToDelete = nil
+                }
+            } message: {
+                Text("This outfit will be removed from Saved Looks. Your clothing items will remain in My Closet.")
             }
         }
     }
-}
 
+    // MARK: - Saved Outfit Card
+
+    private func savedLookCard(_ look: SavedLook) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            // Outfit information
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(look.vibe) Look")
+                        .font(HintedFonts.adLib(22))
+                        .foregroundStyle(HintedColors.purple)
+
+                    Text(
+                        look.dateSaved.formatted(
+                            date: .abbreviated,
+                            time: .omitted
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                // Remove saved outfit
+                Button {
+                    lookToDelete = look
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.system(size: 18))
+                        .foregroundStyle(HintedColors.purple)
+                }
+            }
+
+            // Weather information
+            if let temperature = look.temperature {
+                Label(
+                    "\(Int(temperature.rounded()))°F when generated",
+                    systemImage: "thermometer.medium"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            // Clothing pieces
+            if let top = look.top {
+                OutfitItemCardView(item: top, category: "Top")
+            }
+
+            if let bottom = look.bottom {
+                OutfitItemCardView(item: bottom, category: "Bottom")
+            }
+
+            if let shoes = look.shoes {
+                OutfitItemCardView(item: shoes, category: "Shoes")
+            }
+
+            if let outerwear = look.outerwear {
+                OutfitItemCardView(
+                    item: outerwear,
+                    category: "Outerwear"
+                )
+            }
+
+            // Handle clothing removed from the closet
+            if look.top == nil ||
+                look.bottom == nil ||
+                look.shoes == nil {
+
+                Label(
+                    "Some pieces are no longer in your closet.",
+                    systemImage: "info.circle"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    // MARK: - Delete Saved Look
+
+    private func deleteLook(_ look: SavedLook) {
+        modelContext.delete(look)
+
+        do {
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            print("Failed to remove saved look: \(error)")
+        }
+    }
+}
 // MARK: - Preview
 
 #Preview {
     ContentView()
-        .modelContainer(for: ClothingItem.self, inMemory: true)
+        .modelContainer(
+            for: [ClothingItem.self, SavedLook.self],
+            inMemory: true
+        )
 }

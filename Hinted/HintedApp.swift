@@ -15,6 +15,6 @@ struct HintedApp: App {
             ContentView()
         }
         // tells SwiftData which model our app needs to store and provide storage env
-        .modelContainer(for: ClothingItem.self)
+        .modelContainer(for: [ClothingItem.self, SavedLook.self])
     }
 }
